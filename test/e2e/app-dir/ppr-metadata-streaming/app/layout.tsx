@@ -4,7 +4,9 @@ import { ReactNode } from 'react'
 const hrefs = [
   '/',
   '/dynamic-metadata',
+  '/dynamic-metadata/partial',
   '/dynamic-page',
+  '/dynamic-page/partial',
   '/fully-dynamic',
   '/fully-static',
 ]

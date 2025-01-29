@@ -1,14 +1,16 @@
 import { cookies } from 'next/headers'
 import { Suspense } from 'react'
+import Link from 'next/link'
 
 // Dynamic usage in page, wrapped with Suspense boundary
 export default function Page() {
   return (
     <div>
-      <h1>Dynamic Page</h1>
+      <h1>Partial Dynamic Page</h1>
       <Suspense fallback={<div>Loading...</div>}>
         <SubComponent />
       </Suspense>
+      <Link href="/">Home</Link>
     </div>
   )
 }
