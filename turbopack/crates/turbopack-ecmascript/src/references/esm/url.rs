@@ -25,7 +25,10 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     create_visitor,
     references::AstPath,
-    runtime_functions::{TURBOPACK_RELATIVE_URL, TURBOPACK_REQUIRE},
+    runtime_functions::{
+        create_runtime_function_member, TURBOPACK_RELATIVE_URL, TURBOPACK_REQUIRE,
+        TURBOPACK_RESOLVE_MODULE_ID_PATH,
+    },
     utils::module_id_to_lit,
 };
 
@@ -158,7 +161,7 @@ impl CodeGenerateable for UrlAssetReference {
                 // if the referenced url is in the module graph of turbopack, replace it into
                 // the chunk item will be emitted into output path to point the
                 // static asset path. for the `new URL()` call, replace it into
-                // pseudo url object `{TURBOPACK_RELATIVE_URL}`
+                // pseudo url object `__turbopack_relative_url__`
                 // which is injected by turbopack's runtime to resolve into the relative path
                 // omitting the base.
                 match &*referenced_asset {
@@ -180,8 +183,8 @@ impl CodeGenerateable for UrlAssetReference {
                             if should_rewrite_to_relative {
                                 *new_expr = quote!(
                                     "new $turbopack_relative_url($turbopack_require($id))" as Expr,
-                                    turbopack_relative_url: Ident = TURBOPACK_RELATIVE_URL.into(),
-                                    turbopack_require: Ident = TURBOPACK_REQUIRE.into(),
+                                    turbopack_relative_url: Expr = create_runtime_function_member(TURBOPACK_RELATIVE_URL),
+                                    turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
                                     id: Expr = module_id_to_lit(&id),
                                 );
                             }
@@ -198,7 +201,8 @@ impl CodeGenerateable for UrlAssetReference {
 
                             if should_rewrite_to_relative {
                                 *new_expr = quote!(
-                                    "new {TURBOPACK_RELATIVE_URL}($id)" as Expr,
+                                    "new $turbopack_relative_url($id)" as Expr,
+                                    turbopack_relative_url: Expr = create_runtime_function_member(TURBOPACK_RELATIVE_URL),
                                     id: Expr = request.as_str().into(),
                                 );
                             }
@@ -241,19 +245,21 @@ impl CodeGenerateable for UrlAssetReference {
                         // If there's a rewrite to the base url, then the current rendering
                         // environment should able to resolve the asset path
                         // (asset_url) from the base. Wrap the module id
-                        // with {TURBOPACK_REQUIRE} which returns the asset_url.
+                        // with __turbopack_require__ which returns the asset_url.
                         //
                         // Otherwise, the envioronment should provide an absolute path to the actual
                         // output asset; delegate those calculation to the
-                        // runtime fn {TURBOPACK_RESOLVE_MODULE_ID_PATH}.
+                        // runtime fn __turbopack_resolve_module_id_path__.
                         let url_segment_resolver = if rewrite_url_base.is_some() {
                             quote!(
-                                "{TURBOPACK_REQUIRE}($id)" as Expr,
+                                "$turbopack_require($id)" as Expr,
+                                turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
                                 id: Expr = module_id_to_lit(&id),
                             )
                         } else {
                             quote!(
-                                "{TURBOPACK_RESOLVE_MODULE_ID_PATH}($id)" as Expr,
+                                "$turbopack_resolve_module_id_path($id)" as Expr,
+                                turbopack_resolve_module_id_path: Expr = create_runtime_function_member(TURBOPACK_RESOLVE_MODULE_ID_PATH),
                                 id: Expr = module_id_to_lit(&id),
                             )
                         };
@@ -268,7 +274,7 @@ impl CodeGenerateable for UrlAssetReference {
                                     if let Some(rewrite) = &rewrite_url_base {
                                         *expr = rewrite.clone();
                                     } else {
-                                        // If rewrite for the base doesn't exists, means {TURBOPACK_RESOLVE_MODULE_ID_PATH}
+                                        // If rewrite for the base doesn't exists, means __turbopack_resolve_module_id_path__
                                         // should resolve the full path correctly and there shouldn't be a base.
                                         args.remove(1);
                                     }

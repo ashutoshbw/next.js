@@ -41,6 +41,9 @@ use crate::{
         pattern_mapping::{PatternMapping, ResolveType},
         AstPath,
     },
+    runtime_functions::{
+        create_runtime_function_member, TURBOPACK_MODULE_CONTEXT, TURBOPACK_REQUIRE,
+    },
     utils::module_id_to_lit,
     CodeGenerateable, EcmascriptChunkPlaceable,
 };
@@ -305,7 +308,9 @@ impl CodeGenerateable for RequireContextAssetReference {
         visitors.push(create_visitor!(path, visit_mut_expr(expr: &mut Expr) {
             if let Expr::Call(_) = expr {
                 *expr = quote!(
-                    "{TURBOPACK_MODULE_CONTEXT}({TURBOPACK_REQUIRE}($id))" as Expr,
+                    "$turbopack_module_context($turbopack_require($id))" as Expr,
+                    turbopack_module_context: Expr = create_runtime_function_member(TURBOPACK_MODULE_CONTEXT),
+                    turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
                     id: Expr = module_id_to_lit(&module_id)
                 );
             }

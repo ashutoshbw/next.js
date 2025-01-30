@@ -1,9 +1,5 @@
 use anyhow::{bail, Context, Result};
-use swc_core::{
-    common::DUMMY_SP,
-    ecma::ast::{Ident, MemberExpr},
-    quote,
-};
+use swc_core::{common::DUMMY_SP, ecma::ast::Ident, quote};
 use turbo_rcstr::RcStr;
 use turbo_tasks::{ResolvedVc, ValueToString, Vc};
 use turbopack_core::{
@@ -24,6 +20,7 @@ use crate::{
     chunk::EcmascriptChunkPlaceable,
     code_gen::{CodeGenerateable, CodeGeneration},
     references::esm::base::ReferencedAsset,
+    runtime_functions::{create_runtime_function_member, TURBOPACK_IMPORT},
     utils::module_id_to_lit,
 };
 
@@ -135,13 +132,14 @@ impl CodeGenerateable for EcmascriptModulePartReference {
             .id()
             .await?;
 
-        let x = quote!("abc.xyz;" as Stmt);
-
         Ok(CodeGeneration::hoisted_stmt(
             ident.clone().into(),
             quote!(
-                "var $name = {TURBOPACK_IMPORT}($id);" as Stmt,
+                "var $name = $turbopack_import($id);" as Stmt,
                 name = Ident::new(ident.clone().into(), DUMMY_SP, Default::default()),
+                turbopack_import: Expr = create_runtime_function_member(
+                    TURBOPACK_IMPORT,
+                ),
                 id: Expr = module_id_to_lit(&id),
             ),
         ))

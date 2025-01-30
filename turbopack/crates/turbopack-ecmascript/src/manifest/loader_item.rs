@@ -20,9 +20,7 @@ use crate::{
         data::EcmascriptChunkData, EcmascriptChunkItem, EcmascriptChunkItemContent,
         EcmascriptChunkPlaceable, EcmascriptChunkType,
     },
-    runtime_functions::{
-        TURBOPACK_EXPORT_VALUE, TURBOPACK_IMPORT, TURBOPACK_LOAD, TURBOPACK_REQUIRE,
-    },
+    runtime_functions::{TURBOPACK_EXPORT_VALUE, TURBOPACK_LOAD, TURBOPACK_REQUIRE},
     utils::{StringifyJs, StringifyModuleId},
 };
 

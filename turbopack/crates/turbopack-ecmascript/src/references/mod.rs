@@ -1410,13 +1410,13 @@ async fn compile_time_info_for_module_type(
         .or_insert("function".into());
     free_var_references
         .entry(vec![DefineableNameSegment::Name("require".into())])
-        .or_insert(FreeVarReference::Ident(require.into()));
+        .or_insert(require.into());
 
     free_var_references.extend(TUBROPACK_RUNTIME_FUNCTION_SHORTCUTS.into_iter().map(
         |(name, shortcut)| {
             (
                 vec![DefineableNameSegment::Name(name.into())],
-                FreeVarReference::Member("__turbopack_context__".into(), shortcut.into()),
+                shortcut.into(),
             )
         },
     ));

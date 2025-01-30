@@ -31,7 +31,10 @@ use turbopack_core::{
 use super::util::{request_to_string, throw_module_not_found_expr};
 use crate::{
     references::util::throw_module_not_found_error_expr,
-    runtime_functions::{TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_IMPORT},
+    runtime_functions::{
+        create_runtime_function_member, TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE,
+        TURBOPACK_IMPORT, TURBOPACK_REQUIRE,
+    },
     utils::module_id_to_lit,
 };
 
@@ -115,11 +118,13 @@ impl SinglePatternMapping {
             Self::Unresolvable(request) => throw_module_not_found_expr(request),
             Self::Ignored => quote!("{}" as Expr),
             Self::Module(_) | Self::ModuleLoader(_) => quote!(
-                "{TURBOPACK_REQUIRE}($arg)" as Expr,
+                "$turbopack_require($arg)" as Expr,
+                turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
                 arg: Expr = self.create_id(key_expr)
             ),
             Self::External(request, ExternalType::CommonJs) => quote!(
-                "{TURBOPACK_EXTERNAL_REQUIRE}($arg, () => require($arg))" as Expr,
+                "$turbopack_external_require($arg, () => require($arg))" as Expr,
+                turbopack_external_require: Expr = create_runtime_function_member(TURBOPACK_EXTERNAL_REQUIRE),
                 arg: Expr = request.as_str().into()
             ),
             Self::External(request, ty) => throw_module_not_found_error_expr(
@@ -150,8 +155,8 @@ impl SinglePatternMapping {
             Self::External(_, ExternalType::EcmaScriptModule) => {
                 if import_externals {
                     Expr::Call(CallExpr {
-                        callee: Callee::Expr(Box::new(Expr::Ident(
-                            TURBOPACK_EXTERNAL_IMPORT.into(),
+                        callee: Callee::Expr(Box::new(create_runtime_function_member(
+                            TURBOPACK_EXTERNAL_IMPORT,
                         ))),
                         args: vec![ExprOrSpread {
                             spread: None,
@@ -195,18 +200,13 @@ impl SinglePatternMapping {
                     ty
                 ),
             ),
-            Self::ModuleLoader(module_id) => Expr::Call(CallExpr {
-                callee: Callee::Expr(quote_expr!(
-                    "{TURBOPACK_REQUIRE}($arg)",
-                    arg: Expr = module_id_to_lit(module_id)
-                )),
-                args: vec![ExprOrSpread {
-                    spread: None,
-                    expr: Box::new(Expr::Ident(TURBOPACK_IMPORT.into())),
-                }],
-                span: DUMMY_SP,
-                ..Default::default()
-            }),
+            Self::ModuleLoader(module_id) => {
+                quote!("($turbopack_require($id))($turbopack_import)" as Expr,
+                    turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
+                    turbopack_import: Expr = create_runtime_function_member(TURBOPACK_IMPORT),
+                    id: Expr = module_id_to_lit(module_id)
+                )
+            }
             Self::Ignored => {
                 quote!("Promise.resolve({})" as Expr)
             }
