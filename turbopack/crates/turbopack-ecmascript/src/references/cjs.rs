@@ -20,7 +20,7 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     create_visitor,
     references::AstPath,
-    runtime_functions::{create_runtime_function_member, TURBOPACK_CACHE},
+    runtime_functions::TURBOPACK_CACHE,
 };
 
 #[turbo_tasks::value]
@@ -317,7 +317,7 @@ impl CodeGenerateable for CjsRequireCacheAccess {
         let path = &self.path.await?;
         visitors.push(create_visitor!(path, visit_mut_expr(expr: &mut Expr) {
             if let Expr::Member(_) = expr {
-                *expr = create_runtime_function_member(TURBOPACK_CACHE);
+                *expr = TURBOPACK_CACHE.into();
             } else {
                 unreachable!("`CjsRequireCacheAccess` is only created from `MemberExpr`");
             }

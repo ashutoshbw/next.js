@@ -34,7 +34,7 @@ use crate::{
     chunk::{EcmascriptChunkPlaceable, EcmascriptExports},
     code_gen::{CodeGenerateable, CodeGeneration, CodeGenerationHoistedStmt},
     magic_identifier,
-    runtime_functions::{create_runtime_function_member, TURBOPACK_DYNAMIC, TURBOPACK_ESM},
+    runtime_functions::{TURBOPACK_DYNAMIC, TURBOPACK_ESM},
 };
 
 #[derive(Clone, Hash, Debug, PartialEq, Eq, Serialize, Deserialize, TraceRawVcs, NonLocalValue)]
@@ -513,7 +513,7 @@ impl CodeGenerateable for EsmExports {
 
             dynamic_exports.push(quote_expr!(
                 "$turbopack_dynamic($arg)",
-                turbopack_dynamic: Expr = create_runtime_function_member(TURBOPACK_DYNAMIC),
+                turbopack_dynamic: Expr = TURBOPACK_DYNAMIC.into(),
                 arg: Expr = Ident::new(ident.into(), DUMMY_SP, Default::default()).into()
             ));
         }
@@ -638,7 +638,7 @@ impl CodeGenerateable for EsmExports {
             vec![CodeGenerationHoistedStmt::new(
                 "__turbopack_esm__".into(),
                 quote!("$turbopack_esm($getters);" as Stmt,
-                    turbopack_esm: Expr = create_runtime_function_member(TURBOPACK_ESM),
+                    turbopack_esm: Expr = TURBOPACK_ESM.into(),
                     getters: Expr = getters.clone()
                 ),
             )],

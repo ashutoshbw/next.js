@@ -32,8 +32,7 @@ use super::util::{request_to_string, throw_module_not_found_expr};
 use crate::{
     references::util::throw_module_not_found_error_expr,
     runtime_functions::{
-        create_runtime_function_member, TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE,
-        TURBOPACK_IMPORT, TURBOPACK_REQUIRE,
+        TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE, TURBOPACK_IMPORT, TURBOPACK_REQUIRE,
     },
     utils::module_id_to_lit,
 };
@@ -119,12 +118,12 @@ impl SinglePatternMapping {
             Self::Ignored => quote!("{}" as Expr),
             Self::Module(_) | Self::ModuleLoader(_) => quote!(
                 "$turbopack_require($arg)" as Expr,
-                turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
+                turbopack_require: Expr = TURBOPACK_REQUIRE.into(),
                 arg: Expr = self.create_id(key_expr)
             ),
             Self::External(request, ExternalType::CommonJs) => quote!(
                 "$turbopack_external_require($arg, () => require($arg))" as Expr,
-                turbopack_external_require: Expr = create_runtime_function_member(TURBOPACK_EXTERNAL_REQUIRE),
+                turbopack_external_require: Expr = TURBOPACK_EXTERNAL_REQUIRE.into(),
                 arg: Expr = request.as_str().into()
             ),
             Self::External(request, ty) => throw_module_not_found_error_expr(
@@ -155,9 +154,7 @@ impl SinglePatternMapping {
             Self::External(_, ExternalType::EcmaScriptModule) => {
                 if import_externals {
                     Expr::Call(CallExpr {
-                        callee: Callee::Expr(Box::new(create_runtime_function_member(
-                            TURBOPACK_EXTERNAL_IMPORT,
-                        ))),
+                        callee: Callee::Expr(Box::new(TURBOPACK_EXTERNAL_IMPORT.into())),
                         args: vec![ExprOrSpread {
                             spread: None,
                             expr: Box::new(key_expr.into_owned()),
@@ -202,8 +199,8 @@ impl SinglePatternMapping {
             ),
             Self::ModuleLoader(module_id) => {
                 quote!("($turbopack_require($id))($turbopack_import)" as Expr,
-                    turbopack_require: Expr = create_runtime_function_member(TURBOPACK_REQUIRE),
-                    turbopack_import: Expr = create_runtime_function_member(TURBOPACK_IMPORT),
+                    turbopack_require: Expr = TURBOPACK_REQUIRE.into(),
+                    turbopack_import: Expr = TURBOPACK_IMPORT.into(),
                     id: Expr = module_id_to_lit(module_id)
                 )
             }

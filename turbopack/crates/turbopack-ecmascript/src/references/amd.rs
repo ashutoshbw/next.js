@@ -29,9 +29,7 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     create_visitor,
     references::AstPath,
-    runtime_functions::{
-        create_runtime_function_member, TURBOPACK_EXPORT_VALUE, TURBOPACK_REQUIRE,
-    },
+    runtime_functions::{TURBOPACK_EXPORT_VALUE, TURBOPACK_REQUIRE},
 };
 
 #[turbo_tasks::value]
@@ -199,7 +197,7 @@ impl CodeGenerateable for AmdDefineWithDependenciesCodeGen {
                         ResolvedElement::Expr(quote!("module" as Expr))
                     }
                     AmdDefineDependencyElement::Require => {
-                        ResolvedElement::Expr(create_runtime_function_member(TURBOPACK_REQUIRE))
+                        ResolvedElement::Expr(TURBOPACK_REQUIRE.into())
                     }
                 })
             })
@@ -301,9 +299,7 @@ fn transform_amd_factory(
         }
         AmdDefineFactoryType::Value => {
             // __turbopack_export_value__(...)
-            *callee = Callee::Expr(Box::new(create_runtime_function_member(
-                TURBOPACK_EXPORT_VALUE.into(),
-            )));
+            *callee = Callee::Expr(Box::new(TURBOPACK_EXPORT_VALUE.into()));
             args.push(ExprOrSpread {
                 expr: factory,
                 spread: None,

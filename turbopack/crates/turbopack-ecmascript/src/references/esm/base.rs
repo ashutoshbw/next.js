@@ -36,10 +36,7 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     magic_identifier,
     references::util::{request_to_string, throw_module_not_found_expr},
-    runtime_functions::{
-        create_runtime_function_member, TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE,
-        TURBOPACK_IMPORT,
-    },
+    runtime_functions::{TURBOPACK_EXTERNAL_IMPORT, TURBOPACK_EXTERNAL_REQUIRE, TURBOPACK_IMPORT},
     tree_shake::{asset::EcmascriptModulePartAsset, TURBOPACK_PART_IMPORT_SOURCE},
     utils::{module_id_to_lit, StringifyJs},
 };
@@ -315,7 +312,7 @@ impl CodeGenerateable for EsmAssetReference {
                                 quote!(
                                     "var $name = $turbopack_import($id);" as Stmt,
                                     name = Ident::new(name.clone().into(), DUMMY_SP, Default::default()),
-                                    turbopack_import: Expr = create_runtime_function_member(TURBOPACK_IMPORT),
+                                    turbopack_import: Expr = TURBOPACK_IMPORT.into(),
                                     id: Expr = module_id_to_lit(&id),
                                 ),
                                 span,
@@ -342,14 +339,14 @@ impl CodeGenerateable for EsmAssetReference {
                                     quote!(
                                         "var $name = $turbopack_external_import($id);" as Stmt,
                                         name = Ident::new(ident.clone().into(), DUMMY_SP, Default::default()),
-                                        turbopack_external_import: Expr = create_runtime_function_member(TURBOPACK_EXTERNAL_IMPORT),
+                                        turbopack_external_import: Expr = TURBOPACK_EXTERNAL_IMPORT.into(),
                                         id: Expr = Expr::Lit(request.clone().to_string().into())
                                     )
                                 } else {
                                     quote!(
                                         "var $name = $turbopack_external_require($id, () => require($id), true);" as Stmt,
                                         name = Ident::new(ident.clone().into(), DUMMY_SP, Default::default()),
-                                        turbopack_external_require: Expr = create_runtime_function_member(TURBOPACK_EXTERNAL_REQUIRE),
+                                        turbopack_external_require: Expr = TURBOPACK_EXTERNAL_REQUIRE.into(),
                                         id: Expr = Expr::Lit(request.clone().to_string().into())
                                     )
                                 },
@@ -379,7 +376,7 @@ impl CodeGenerateable for EsmAssetReference {
                                 quote!(
                                     "var $name = $turbopack_external_require($id, () => require($id), true);" as Stmt,
                                     name = Ident::new(ident.clone().into(), DUMMY_SP, Default::default()),
-                                    turbopack_external_require: Expr = create_runtime_function_member(TURBOPACK_EXTERNAL_REQUIRE),
+                                    turbopack_external_require: Expr = TURBOPACK_EXTERNAL_REQUIRE.into(),
                                     id: Expr = Expr::Lit(request.clone().to_string().into())
                                 ),
                                 span,
