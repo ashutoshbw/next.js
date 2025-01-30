@@ -384,9 +384,8 @@ impl EcmascriptChunkItem for ModuleChunkItem {
                             .await?;
                         let module_id = StringifyJs(&*module_id);
                         let original_name = StringifyJs(&original_name);
-                        exported_class_names.push(format! {
-                            "{TURBOPACK_IMPORT}({module_id})[{original_name}]"
-                        });
+                        exported_class_names
+                            .push(format!("{TURBOPACK_IMPORT}({module_id})[{original_name}]"));
                     }
                     ModuleCssClass::Local { name: class_name }
                     | ModuleCssClass::Global { name: class_name } => {

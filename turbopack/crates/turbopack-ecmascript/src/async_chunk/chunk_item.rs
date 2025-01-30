@@ -97,9 +97,9 @@ impl EcmascriptChunkItem for AsyncLoaderChunkItem {
             (Some(id), true) => {
                 formatdoc! {
                     r#"
-                        {TURBOPACK_EXPORT_VALUE}((__turbopack_import__) => {{
+                        {TURBOPACK_EXPORT_VALUE}((parentImport) => {{
                             return Promise.resolve().then(() => {{
-                                return __turbopack_import__({id});
+                                return parentImport({id});
                             }});
                         }});
                     "#,
@@ -109,9 +109,9 @@ impl EcmascriptChunkItem for AsyncLoaderChunkItem {
             (Some(id), false) => {
                 formatdoc! {
                     r#"
-                        {TURBOPACK_EXPORT_VALUE}((__turbopack_import__) => {{
+                        {TURBOPACK_EXPORT_VALUE}((parentImport) => {{
                             return Promise.all({chunks:#}.map((chunk) => {TURBOPACK_LOAD}(chunk))).then(() => {{
-                                return __turbopack_import__({id});
+                                return parentImport({id});
                             }});
                         }});
                     "#,
@@ -122,7 +122,7 @@ impl EcmascriptChunkItem for AsyncLoaderChunkItem {
             (None, true) => {
                 formatdoc! {
                     r#"
-                        {TURBOPACK_EXPORT_VALUE}((__turbopack_import__) => {{
+                        {TURBOPACK_EXPORT_VALUE}((parentImport) => {{
                             return Promise.resolve();
                         }});
                     "#,
@@ -131,7 +131,7 @@ impl EcmascriptChunkItem for AsyncLoaderChunkItem {
             (None, false) => {
                 formatdoc! {
                     r#"
-                        {TURBOPACK_EXPORT_VALUE}((__turbopack_import__) => {{
+                        {TURBOPACK_EXPORT_VALUE}((parentImport) => {{
                             return Promise.all({chunks:#}.map((chunk) => {TURBOPACK_LOAD}(chunk))).then(() => {{}});
                         }});
                     "#,

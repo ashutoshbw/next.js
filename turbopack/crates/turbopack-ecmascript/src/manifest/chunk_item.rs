@@ -18,9 +18,9 @@ use crate::{
     utils::StringifyJs,
 };
 
-/// The ManifestChunkItem generates a {TURBOPACK_LOAD} call for every chunk
+/// The ManifestChunkItem generates a __turbopack_load__ call for every chunk
 /// necessary to load the real asset. Once all the loads resolve, it is safe to
-/// {TURBOPACK_IMPORT} the actual module that was dynamically imported.
+/// __turbopack_import__ the actual module that was dynamically imported.
 #[turbo_tasks::value(shared)]
 pub(super) struct ManifestChunkItem {
     pub chunking_context: ResolvedVc<Box<dyn ChunkingContext>>,

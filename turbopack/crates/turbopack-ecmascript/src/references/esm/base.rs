@@ -36,6 +36,7 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     magic_identifier,
     references::util::{request_to_string, throw_module_not_found_expr},
+    runtime_functions::TURBOPACK_IMPORT,
     tree_shake::{asset::EcmascriptModulePartAsset, TURBOPACK_PART_IMPORT_SOURCE},
     utils::{module_id_to_lit, StringifyJs},
 };
@@ -309,8 +310,9 @@ impl CodeGenerateable for EsmAssetReference {
                             id.to_string().into(),
                             var_decl_with_span(
                                 quote!(
-                                    "var $name = {TURBOPACK_IMPORT}($id);" as Stmt,
+                                    "var $name = $turbopack_import($id);" as Stmt,
                                     name = Ident::new(name.clone().into(), DUMMY_SP, Default::default()),
+                                    turbopack_import = Ident::new(TURBOPACK_IMPORT.into(), DUMMY_SP, Default::default()),
                                     id: Expr = module_id_to_lit(&id),
                                 ),
                                 span,
