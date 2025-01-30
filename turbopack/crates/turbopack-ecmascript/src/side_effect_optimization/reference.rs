@@ -1,5 +1,9 @@
 use anyhow::{bail, Context, Result};
-use swc_core::{common::DUMMY_SP, ecma::ast::Ident, quote};
+use swc_core::{
+    common::DUMMY_SP,
+    ecma::ast::{Ident, MemberExpr},
+    quote,
+};
 use turbo_rcstr::RcStr;
 use turbo_tasks::{ResolvedVc, ValueToString, Vc};
 use turbopack_core::{
@@ -130,6 +134,8 @@ impl CodeGenerateable for EcmascriptModulePartReference {
             .as_chunk_item(module_graph, Vc::upcast(chunking_context))
             .id()
             .await?;
+
+        let x = quote!("abc.xyz;" as Stmt);
 
         Ok(CodeGeneration::hoisted_stmt(
             ident.clone().into(),

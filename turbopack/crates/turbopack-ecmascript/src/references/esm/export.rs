@@ -513,7 +513,8 @@ impl CodeGenerateable for EsmExports {
             .await?;
 
             dynamic_exports.push(quote_expr!(
-                "{TURBOPACK_DYNAMIC}($arg)",
+                "$turbopack_dynamic($arg)",
+                turbopack_dynamic: Ident = TURBOPACK_DYNAMIC.into(),
                 arg: Expr = Ident::new(ident.into(), DUMMY_SP, Default::default()).into()
             ));
         }

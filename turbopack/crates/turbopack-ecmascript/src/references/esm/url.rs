@@ -25,6 +25,7 @@ use crate::{
     code_gen::{CodeGenerateable, CodeGeneration},
     create_visitor,
     references::AstPath,
+    runtime_functions::{TURBOPACK_RELATIVE_URL, TURBOPACK_REQUIRE},
     utils::module_id_to_lit,
 };
 
@@ -133,9 +134,9 @@ impl CodeGenerateable for UrlAssetReference {
     ┌───────────────────────────────┬─────────────────────────────────────────────────────────────────────────┬────────────────────────────────────────────────┬───────────────────────┐
     │  UrlRewriteBehavior\RefAsset  │                         ReferencedAsset::Some()                         │           ReferencedAsset::External            │ ReferencedAsset::None │
     ├───────────────────────────────┼─────────────────────────────────────────────────────────────────────────┼────────────────────────────────────────────────┼───────────────────────┤
-    │ Relative                      │ {TURBOPACK_RELATIVE_URL}({TURBOPACK_REQUIRE}(urlId))                │ {TURBOPACK_RELATIVE_URL}(url)                │ new URL(url, base)    │
-    │ Full(RenderingClient::Client) │ new URL({TURBOPACK_REQUIRE}(urlId), location.origin)                  │ new URL(url, location.origin)                  │ new URL(url, base)    │
-    │ Full(RenderingClient::..)     │ new URL({TURBOPACK_RESOLVE_MODULE_ID_PATH}(urlId))                    │ new URL(url, base)                             │ new URL(url, base)    │
+    │ Relative                      │ __turbopack_relative_url__(__turbopack_require__(urlId))                │ __turbopack_relative_url__(url)                │ new URL(url, base)    │
+    │ Full(RenderingClient::Client) │ new URL(__turbopack_require__(urlId), location.origin)                  │ new URL(url, location.origin)                  │ new URL(url, base)    │
+    │ Full(RenderingClient::..)     │ new URL(__turbopack_resolve_module_id_path__(urlId))                    │ new URL(url, base)                             │ new URL(url, base)    │
     │ None                          │ new URL(url, base)                                                      │ new URL(url, base)                             │ new URL(url, base)    │
     └───────────────────────────────┴─────────────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────┴───────────────────────┘
     */
@@ -178,7 +179,9 @@ impl CodeGenerateable for UrlAssetReference {
 
                             if should_rewrite_to_relative {
                                 *new_expr = quote!(
-                                    "new {TURBOPACK_RELATIVE_URL}({TURBOPACK_REQUIRE}($id))" as Expr,
+                                    "new $turbopack_relative_url($turbopack_require($id))" as Expr,
+                                    turbopack_relative_url: Ident = TURBOPACK_RELATIVE_URL.into(),
+                                    turbopack_require: Ident = TURBOPACK_REQUIRE.into(),
                                     id: Expr = module_id_to_lit(&id),
                                 );
                             }

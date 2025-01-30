@@ -26,7 +26,7 @@ use turbopack_ecmascript::{
         EcmascriptChunkItem, EcmascriptChunkItemContent, EcmascriptChunkPlaceable,
         EcmascriptChunkType, EcmascriptExports,
     },
-    runtime_functions::TURBOPACK_IMPORT,
+    runtime_functions::{TURBOPACK_EXPORT_VALUE, TURBOPACK_IMPORT},
     utils::StringifyJs,
     ParseResultSourceMap,
 };
@@ -329,7 +329,8 @@ impl EcmascriptChunkItem for ModuleChunkItem {
     async fn content(&self) -> Result<Vc<EcmascriptChunkItemContent>> {
         let classes = self.module.classes().await?;
 
-        let mut code = "{TURBOPACK_EXPORT_VALUE}({\n".to_string();
+        // TODO turn this into a rope
+        let mut code = format!("{TURBOPACK_EXPORT_VALUE}({{\n");
         for (export_name, class_names) in &*classes {
             let mut exported_class_names = Vec::with_capacity(class_names.len());
 

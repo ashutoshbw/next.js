@@ -184,13 +184,13 @@ impl EcmascriptChunkItem for ManifestLoaderChunkItem {
         writedoc!(
             code,
             r#"
-                {TURBOPACK_EXPORT_VALUE}(({TURBOPACK_IMPORT}) => {{
+                {TURBOPACK_EXPORT_VALUE}((parentImport) => {{
                     return Promise.all({chunks_server_data}.map((chunk) => {TURBOPACK_LOAD}(chunk))).then(() => {{
                         return {TURBOPACK_REQUIRE}({item_id});
                     }}).then((chunks) => {{
                         return Promise.all(chunks.map((chunk) => {TURBOPACK_LOAD}(chunk)));
                     }}).then(() => {{
-                        return {TURBOPACK_IMPORT}({dynamic_id});
+                        return parentImport({dynamic_id});
                     }});
                 }});
             "#,
