@@ -1,24 +1,20 @@
 import { nextTestSetup } from 'e2e-utils'
 
 describe('ppr-metadata-streaming', () => {
-  const { next, isNextDev } = nextTestSetup({
+  const { next } = nextTestSetup({
     files: __dirname,
   })
 
   // No dynamic APIs used in metadata
   describe('static metadata', () => {
-    // In development mode, metadata is inserted into body since it's always dynamic
-    const rootSelector = isNextDev ? 'body' : 'head'
-    it('should generate metadata in head when page is fully static', async () => {
+    it('should generate metadata in body when page is fully static', async () => {
       const $ = await next.render$('/fully-static')
-      expect($(`${rootSelector} title`).text()).toBe('fully static')
+      expect($(`body title`).text()).toBe('fully static')
     })
 
-    it('should generate metadata in head when page is dynamic page content', async () => {
+    it('should insert metadata in body when page is dynamic page content', async () => {
       const $ = await next.render$('/dynamic-page')
-      expect($(`${rootSelector} title`).text()).toBe(
-        'static metadata with dynamic page content'
-      )
+      expect($(`body title`).text()).toBe('dynamic page')
     })
   })
 
@@ -31,8 +27,28 @@ describe('ppr-metadata-streaming', () => {
 
     it('should generate metadata in head when page content is static', async () => {
       const $ = await next.render$('/dynamic-metadata')
-      expect($('body title').text()).toBe(
-        'dynamic metadata with static page content'
+      expect($('body title').text()).toBe('dynamic metadata')
+    })
+  })
+
+  describe('partial shell', () => {
+    it('should insert metadata into body with dynamic metadata and wrapped under layout Suspense boundary', async () => {
+      const $ = await next.render$('/dynamic-metadata/partial')
+      expect($('body title').text()).toBe('dynamic-metadata - partial')
+
+      const browser = await next.browser('/dynamic-metadata/partial')
+      expect(await browser.waitForElementByCss('title').text()).toBe(
+        'dynamic-metadata - partial'
+      )
+    })
+
+    it('should insert metadata into body with dynamic metadata and dynamic page wrapped under layout Suspense boundary', async () => {
+      const $ = await next.render$('/dynamic-page/partial')
+      expect($('body title').text()).toBe('dynamic-page - partial')
+
+      const browser = await next.browser('/dynamic-page/partial')
+      expect(await browser.waitForElementByCss('title').text()).toBe(
+        'dynamic-page - partial'
       )
     })
   })

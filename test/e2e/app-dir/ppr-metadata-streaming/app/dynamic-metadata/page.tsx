@@ -12,7 +12,7 @@ export async function generateMetadata() {
   await connection()
   await new Promise((resolve) => setTimeout(resolve, 3 * 1000))
   return {
-    title: `dynamic metadata with static page content`,
+    title: `dynamic metadata`,
     description: `dynamic metadata - ${Math.random()}`,
   }
 }

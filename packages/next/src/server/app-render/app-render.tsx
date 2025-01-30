@@ -325,11 +325,7 @@ function createDivergedMetadataComponents(
 } {
   const EmptyMetadata = () => null
   const StreamingMetadata: React.ComponentType<{}> = serveStreamingMetadata
-    ? () => (
-        <React.Suspense fallback={null}>
-          <Metadata />
-        </React.Suspense>
-      )
+    ? Metadata
     : EmptyMetadata
 
   const StaticMetadata: React.ComponentType<{}> = serveStreamingMetadata

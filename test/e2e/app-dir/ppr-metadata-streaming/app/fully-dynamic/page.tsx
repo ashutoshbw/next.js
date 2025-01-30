@@ -1,13 +1,14 @@
 import { cookies } from 'next/headers'
-import Link from 'next/link'
 import { connection } from 'next/server'
+import { Suspense } from 'react'
+
 export default function Home() {
   return (
     <div>
       <h1>Fully Dynamic</h1>
-      <SubComponent />
-
-      <Link href="/">Home</Link>
+      <Suspense>
+        <SubComponent />
+      </Suspense>
     </div>
   )
 }

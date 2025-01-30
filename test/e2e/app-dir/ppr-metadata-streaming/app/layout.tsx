@@ -18,7 +18,7 @@ export default function Root({ children }: { children: ReactNode }) {
         <div>
           {hrefs.map((href) => (
             <div key={href}>
-              <Link href={href} id={`to-${href}`}>
+              <Link href={href} id={`to-${href}`} prefetch={false}>
                 {`to ${href}`}
               </Link>
             </div>

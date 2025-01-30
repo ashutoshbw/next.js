@@ -193,6 +193,30 @@ function createInsertedHTMLStream(
   })
 }
 
+function createInsertedMetadataStream(
+  getServerInsertedMetadata: () => Promise<string>
+): TransformStream<Uint8Array, Uint8Array> {
+  let inserted = false
+  return new TransformStream({
+    transform: async (chunk, controller) => {
+      controller.enqueue(chunk)
+      const metadata = await getServerInsertedMetadata()
+      if (metadata) {
+        controller.enqueue(encoder.encode(metadata))
+        inserted = true
+      }
+    },
+    flush: async (controller) => {
+      if (inserted) return
+      // Flush the pending metadata if it hasn't been inserted yet
+      const metadata = await getServerInsertedMetadata()
+      if (metadata) {
+        controller.enqueue(encoder.encode(metadata))
+      }
+    },
+  })
+}
+
 export function renderToInitialFizzStream({
   ReactDOMServer,
   element,
@@ -573,7 +597,7 @@ export async function continueFizzStream(
       : null,
 
     // Insert generated metadata to body
-    createInsertedHTMLStream(getServerInsertedMetadata),
+    createInsertedMetadataStream(getServerInsertedMetadata),
 
     // Insert suffix content
     suffixUnclosed != null && suffixUnclosed.length > 0
@@ -618,7 +642,7 @@ export async function continueDynamicPrerender(
       // Insert generated tags to head
       .pipeThrough(createHeadInsertionTransformStream(getServerInsertedHTML))
       // Insert generated metadata to body
-      .pipeThrough(createInsertedHTMLStream(getServerInsertedMetadata))
+      .pipeThrough(createInsertedMetadataStream(getServerInsertedMetadata))
   )
 }
 
@@ -642,8 +666,10 @@ export async function continueStaticPrerender(
       .pipeThrough(createBufferedTransformStream())
       // Insert generated tags to head
       .pipeThrough(createHeadInsertionTransformStream(getServerInsertedHTML))
-      // Insert generated metadata to body
-      .pipeThrough(createInsertedHTMLStream(getServerInsertedMetadata))
+      // Insert generated metadata to head
+      .pipeThrough(
+        createHeadInsertionTransformStream(getServerInsertedMetadata)
+      )
       // Insert the inlined data (Flight data, form state, etc.) stream into the HTML
       .pipeThrough(createMergedTransformStream(inlinedDataStream))
       // Close tags should always be deferred to the end
@@ -672,7 +698,7 @@ export async function continueDynamicHTMLResume(
       // Insert generated tags to head
       .pipeThrough(createHeadInsertionTransformStream(getServerInsertedHTML))
       // Insert generated metadata to body
-      .pipeThrough(createInsertedHTMLStream(getServerInsertedMetadata))
+      .pipeThrough(createInsertedMetadataStream(getServerInsertedMetadata))
       // Insert the inlined data (Flight data, form state, etc.) stream into the HTML
       .pipeThrough(createMergedTransformStream(inlinedDataStream))
       // Close tags should always be deferred to the end

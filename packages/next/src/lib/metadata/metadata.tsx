@@ -3,7 +3,7 @@ import type { GetDynamicParamFromSegment } from '../../server/app-render/app-ren
 import type { LoaderTree } from '../../server/lib/app-dir-module'
 import type { CreateServerParamsForMetadata } from '../../server/request/params'
 
-import { cache, cloneElement } from 'react'
+import { Suspense, cache, cloneElement } from 'react'
 import {
   AppleWebAppMeta,
   FormatDetectionMeta,
@@ -168,10 +168,16 @@ export function createMetadataComponents({
     }
   }
   async function Metadata() {
+    const promise = resolveFinalMetadata()
+
     if (serveStreamingMetadata) {
-      return <AsyncMetadata promise={resolveFinalMetadata()} />
+      return (
+        <Suspense fallback={null}>
+          <AsyncMetadata promise={promise} />
+        </Suspense>
+      )
     }
-    return await resolveFinalMetadata()
+    return await promise
   }
 
   Metadata.displayName = METADATA_BOUNDARY_NAME
